@@ -1,0 +1,30 @@
+name: Healthcheck
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+
+jobs:
+  healthcheck:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v3
+        with:
+          url: https://blue-frost-7730.fly.dev/
+
+      - name: Notify when health check succeeds
+        if: success()
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          severity: info 
+          text: Health check succeeded.
+
+      - name: Notify when health check fails
+        if: failure()
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          severity: error
+          text: Health check failed.
